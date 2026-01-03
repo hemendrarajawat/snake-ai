@@ -1,0 +1,8 @@
+name: snake-ai
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
+  - pygame=2.6
+  - black
+prefix: ./env
