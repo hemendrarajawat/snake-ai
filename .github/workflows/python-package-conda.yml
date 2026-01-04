@@ -1,0 +1,44 @@
+name: Python Package using Conda
+
+on: [push]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Conda Path
+      run: echo $CONDA/bin >> $GITHUB_PATH
+
+    - name: Cache Conda env
+      uses: actions/cache@v3
+      with:
+        path: /usr/share/miniconda/envs/base
+        # The cache key is based on the hash of your environment file
+        key: conda-${{ runner.os }}-${{ hashFiles('environment.yml') }}
+        restore-keys: |
+          conda-${{ runner.os }}-
+
+    - name: Install dependencies
+      run: |
+        # This will only run updates if the cache didn't perfectly match
+        conda env update --file environment.yml --name base
+        conda install flake8
+
+    - name: Check Environment
+      run: |
+        python --version
+        conda info
+
+    - name: Check formatting with Black
+      run: black --check .
+
+    - name: Lint with flake8
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Test with pytest
+      run: pytest
