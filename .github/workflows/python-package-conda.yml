@@ -23,22 +23,22 @@ jobs:
 
     - name: Install dependencies
       run: |
-        # This will only run updates if the cache didn't perfectly match
+        # Update env and force install dev tools into the 'base' env
         conda env update --file environment.yml --name base
-        conda install flake8
+        conda install -n base black flake8 pytest
 
     - name: Check Environment
       run: |
-        python --version
-        conda info
+        conda run -n base python --version
+        conda run -n base conda info
 
     - name: Check formatting with Black
-      run: black --check .
+      run: conda run -n base black --check .
 
     - name: Lint with flake8
       run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        conda run -n base flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        conda run -n base flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Test with pytest
-      run: pytest
+      run: conda run -n base pytest
