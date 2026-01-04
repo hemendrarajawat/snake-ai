@@ -25,7 +25,6 @@ jobs:
       run: |
         # Update env and force install dev tools into the 'base' env
         conda env update --file environment.yml --name base
-        conda install -n base black flake8 pytest
 
     - name: Check Environment
       run: |

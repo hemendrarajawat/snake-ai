@@ -5,4 +5,5 @@ dependencies:
   - python=3.13
   - pygame=2.6
   - black
+  - pytest
 prefix: ./env
