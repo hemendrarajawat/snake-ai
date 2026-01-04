@@ -6,39 +6,62 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        shell: bash -l {0}
+
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Conda Path
-      run: echo $CONDA/bin >> $GITHUB_PATH
+      - name: Set up Conda Path
+        run: |
+          echo "$CONDA/bin" >> $GITHUB_PATH
 
-    - name: Cache Conda env
-      uses: actions/cache@v3
-      with:
-        path: /usr/share/miniconda/envs/base
-        # The cache key is based on the hash of your environment file
-        key: conda-${{ runner.os }}-${{ hashFiles('environment.yml') }}
-        restore-keys: |
-          conda-${{ runner.os }}-
+      - name: Install dependencies
+        run: |
+          conda env update --file environment.yml --name base
+          conda install -n base -y black flake8 pytest
 
-    - name: Install dependencies
-      run: |
-        # Update env and force install dev tools into the 'base' env
-        conda env update --file environment.yml --name base
-        conda install -n base black flake8 pytest
+      - name: Check Environment
+        run: |
+          echo "Python version:"
+          python --version
 
-    - name: Check Environment
-      run: |
-        conda run -n base python --version
-        conda run -n base conda info
+          echo "Conda info:"
+          conda info
 
-    - name: Check formatting with Black
-      run: conda run -n base black --check .
+          echo "Conda list:"
+          conda list
 
-    - name: Lint with flake8
-      run: |
-        conda run -n base flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        conda run -n base flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Check formatting with Black
+        run: |
+          conda run -n base black --check .
 
-    - name: Test with pytest
-      run: conda run -n base pytest --exitfirst || echo "No tests found yet"
+      - name: Lint with flake8
+        run: |
+          conda run -n base flake8 . \
+            --count \
+            --select=E9,F63,F7,F82 \
+            --show-source \
+            --statistics
+
+          conda run -n base flake8 . \
+            --count \
+            --exit-zero \
+            --max-complexity=10 \
+            --max-line-length=127 \
+            --statistics
+
+      - name: Test with pytest
+        run: |
+          set +e
+          conda run -n base pytest
+          exit_code=$?
+
+          if [ "$exit_code" -eq 5 ]; then
+            echo "No tests discovered yet."
+            exit 0
+          elif [ "$exit_code" -ne 0 ]; then
+            exit $exit_code
+          fi
