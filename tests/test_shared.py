@@ -1,5 +1,3 @@
-import pytest
-
 from shared.direction import Direction
 from shared.point import Point
 from shared.game_state import GameState, GameStatus
